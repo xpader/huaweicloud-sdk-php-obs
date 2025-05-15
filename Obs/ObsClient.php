@@ -21,23 +21,13 @@ use Obs\Log\ObsLog;
 use Obs\Internal\Common\SdkCurlFactory;
 use Obs\Internal\Common\SdkStreamHandler;
 use Obs\Internal\Common\Model;
-use Monolog\Logger;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\Handler\CurlMultiHandler;
 use GuzzleHttp\Handler\Proxy;
 use GuzzleHttp\Promise\Promise;
-
-define('DEBUG', Logger::DEBUG);
-define('INFO', Logger::INFO);
-define('NOTICE', Logger::NOTICE);
-define('WARNING', Logger::WARNING);
-define('WARN', Logger::WARNING);
-define('ERROR', Logger::ERROR);
-define('CRITICAL', Logger::CRITICAL);
-define('ALERT', Logger::ALERT);
-define('EMERGENCY', Logger::EMERGENCY);
+use Psr\Log\LoggerInterface;
 
 /**
  * @method Model createPostSignature(array $args=[]);
@@ -375,7 +365,7 @@ class ObsClient
         return new ObsClient($config);
     }
 
-    public function initLog(Logger $logger)
+    public function initLog(LoggerInterface $logger)
     {
         ObsLog::setLogger($logger);
 

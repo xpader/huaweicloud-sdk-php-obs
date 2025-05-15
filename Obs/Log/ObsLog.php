@@ -17,7 +17,7 @@
 
 namespace Obs\Log;
 
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @method static void debug(string $format, $args1 = null, $arg2 = null)
@@ -33,11 +33,11 @@ class ObsLog
 {
 
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     public static $log = null;
 
-    public static function setLogger(Logger $logger)
+    public static function setLogger(LoggerInterface $logger)
     {
         self::$log = $logger;
     }
