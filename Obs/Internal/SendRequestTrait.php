@@ -373,55 +373,25 @@ trait SendRequestTrait
             $formParams['key'] = $objectKey;
         }
 
-        $policy = [];
-
-        $policy[] = '{"expiration":"';
-        $policy[] = $expires;
-        $policy[] = '", "conditions":[';
-
-        $matchAnyBucket = true;
-        $matchAnyKey = true;
-
-        $conditionAllowKeys = ['acl', 'bucket', 'key', 'success_action_redirect', 'redirect', 'success_action_status'];
+        $policy = [
+            'expiration' => $expires,
+            'conditions' => []
+        ];
 
         foreach ($formParams as $key => $val) {
-            if ($key) {
-                $key = strtolower(strval($key));
-
-                if ($key === 'bucket') {
-                    $matchAnyBucket = false;
-                } elseif ($key === 'key') {
-                    $matchAnyKey = false;
-                } else {
-                    // nothing handle
+            if (is_string($key)) {
+                $key = $this->decideKey($key);
+                $policy['conditions'][] = [$key => $val];
+            } elseif (is_array($val)) {
+                if ($val[0] == 'starts-with') {
+                    $val[1] = $this->decideKey($val[1]);
                 }
-
-                if (!in_array($key, Constants::ALLOWED_REQUEST_HTTP_HEADER_METADATA_NAMES)
-                    && strpos($key, $constants::HEADER_PREFIX) !== 0
-                    && !in_array($key, $conditionAllowKeys)
-                ) {
-                    $key = $constants::METADATA_PREFIX . $key;
-                }
-
-                $policy[] = '{"';
-                $policy[] = $key;
-                $policy[] = '":"';
-                $policy[] = $val !== null ? strval($val) : '';
-                $policy[] = '"},';
+                $policy['conditions'][] = $val;
             }
+            $key = strtolower(strval($key));
         }
 
-        if ($matchAnyBucket) {
-            $policy[] = '["starts-with", "$bucket", ""],';
-        }
-
-        if ($matchAnyKey) {
-            $policy[] = '["starts-with", "$key", ""],';
-        }
-
-        $policy[] = ']}';
-
-        $originPolicy = implode('', $policy);
+        $originPolicy = json_encode($policy);
 
         $policy = base64_encode($originPolicy);
 
@@ -472,55 +442,25 @@ trait SendRequestTrait
             $formParams['key'] = $objectKey;
         }
 
-        $policy = [];
-
-        $policy[] = '{"expiration":"';
-        $policy[] = $expires;
-        $policy[] = '", "conditions":[';
-
-        $matchAnyBucket = true;
-        $matchAnyKey = true;
-
-        $conditionAllowKeys = ['acl', 'bucket', 'key', 'success_action_redirect', 'redirect', 'success_action_status'];
+        $policy = [
+            'expiration' => $expires,
+            'conditions' => []
+        ];
 
         foreach ($formParams as $key => $val) {
-            if ($key) {
-                $key = strtolower(strval($key));
-
-                if ($key === 'bucket') {
-                    $matchAnyBucket = false;
+            if (is_string($key)) {
+                $key = $this->decideKey($key);
+                $policy['conditions'][] = [$key => $val];
+            } elseif (is_array($val)) {
+                if ($val[0] == 'starts-with') {
+                    $val[1] = $this->decideKey($val[1]);
                 }
-
-                if ($key === 'key') {
-                    $matchAnyKey = false;
-                }
-
-                if (!in_array($key, Constants::ALLOWED_REQUEST_HTTP_HEADER_METADATA_NAMES)
-                    && strpos($key, V2Constants::HEADER_PREFIX) !== 0
-                    && !in_array($key, $conditionAllowKeys)
-                ) {
-                    $key = V2Constants::METADATA_PREFIX . $key;
-                }
-
-                $policy[] = '{"';
-                $policy[] = $key;
-                $policy[] = '":"';
-                $policy[] = $val !== null ? strval($val) : '';
-                $policy[] = '"},';
+                $policy['conditions'][] = $val;
             }
+            $key = strtolower(strval($key));
         }
 
-        if ($matchAnyBucket) {
-            $policy[] = '["starts-with", "$bucket", ""],';
-        }
-
-        if ($matchAnyKey) {
-            $policy[] = '["starts-with", "$key", ""],';
-        }
-
-        $policy[] = ']}';
-
-        $originPolicy = implode('', $policy);
+        $originPolicy = json_encode($policy);
 
         $policy = base64_encode($originPolicy);
 
@@ -538,6 +478,20 @@ trait SendRequestTrait
         $model['Date'] = $formParams['X-Amz-Date'];
         $model['Signature'] = $signatureContent;
         return $model;
+    }
+
+    private function decideKey($key)
+    {
+        $conditionAllowKeys = ['acl', 'bucket', 'key', 'success_action_redirect', 'redirect', 'success_action_status'];
+
+        if (!in_array($key, Constants::ALLOWED_REQUEST_HTTP_HEADER_METADATA_NAMES)
+            && strpos($key, V2Constants::HEADER_PREFIX) !== 0
+            && !in_array($key, $conditionAllowKeys)
+        ) {
+            return V2Constants::METADATA_PREFIX . $key;
+        }
+
+        return $key;
     }
 
     public function __call($originMethod, $args)
