@@ -380,12 +380,8 @@ trait SendRequestTrait
 
         foreach ($formParams as $key => $val) {
             if (is_string($key)) {
-                $key = $this->decideKey($key);
                 $policy['conditions'][] = [$key => $val];
             } elseif (is_array($val)) {
-                if ($val[0] == 'starts-with') {
-                    $val[1] = $this->decideKey($val[1]);
-                }
                 $policy['conditions'][] = $val;
             }
             $key = strtolower(strval($key));
@@ -449,12 +445,8 @@ trait SendRequestTrait
 
         foreach ($formParams as $key => $val) {
             if (is_string($key)) {
-                $key = $this->decideKey($key);
                 $policy['conditions'][] = [$key => $val];
             } elseif (is_array($val)) {
-                if ($val[0] == 'starts-with') {
-                    $val[1] = $this->decideKey($val[1]);
-                }
                 $policy['conditions'][] = $val;
             }
             $key = strtolower(strval($key));
@@ -478,20 +470,6 @@ trait SendRequestTrait
         $model['Date'] = $formParams['X-Amz-Date'];
         $model['Signature'] = $signatureContent;
         return $model;
-    }
-
-    private function decideKey($key)
-    {
-        $conditionAllowKeys = ['acl', 'bucket', 'key', 'success_action_redirect', 'redirect', 'success_action_status'];
-
-        if (!in_array($key, Constants::ALLOWED_REQUEST_HTTP_HEADER_METADATA_NAMES)
-            && strpos($key, V2Constants::HEADER_PREFIX) !== 0
-            && !in_array($key, $conditionAllowKeys)
-        ) {
-            return V2Constants::METADATA_PREFIX . $key;
-        }
-
-        return $key;
     }
 
     public function __call($originMethod, $args)
