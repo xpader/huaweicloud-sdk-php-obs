@@ -374,7 +374,7 @@ class ObsClient
         $msg[] = 'Endpoint=' . $this->endpoint;
         $msg[] = 'Access Mode=' . ($this->pathStyle ? 'Path' : 'Virtual Hosting') . ']';
 
-        ObsLog::warning(implode("];[", $msg));
+        ObsLog::debug(implode("];[", $msg));
     }
 
     public static function makeHandler($handler=null)
